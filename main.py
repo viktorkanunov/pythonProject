@@ -2,6 +2,8 @@ import sys
 import pygame
 import sqlite3
 
+con = sqlite3.connect("calcul.db")
+cur = con.cursor()
 pygame.init()
 size = width, height = 1125, 900
 tile_size = 75
@@ -11,7 +13,8 @@ PLAYER_UP = pygame.USEREVENT + 1
 PLAYER_DOWN = pygame.USEREVENT + 2
 PLAYER_LEFT = pygame.USEREVENT + 3
 PLAYER_RIGHT = pygame.USEREVENT + 4
-time = 0
+time = cur.execute('''SELECT * FROM results''').fetchall()
+time = time[0][1]
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 all_sprites = pygame.sprite.Group()
@@ -238,8 +241,6 @@ def start_screen():
 
 
 start_screen()
-con = sqlite3.connect("calcul.db")
-cur = con.cursor()
 camera = Camera()
 running = True
 sc = True
@@ -250,7 +251,6 @@ while running:
     time += 1
     if sc:
         point -= 1
-    print(win)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -292,30 +292,20 @@ while running:
     draw_level(screen)
     all_sprites.draw(screen)
     all_sprites.update()
+    font = pygame.font.Font(None, 36)
+    text = font.render(f"Вы набрали {point} очков", True, (255, 255, 255))
+    rect = text.get_rect()
+    font1 = pygame.font.Font(None, 36)
+    text1 = font1.render(f"Времени в игре {time // 15 } секунд", True, (255, 255, 255))
+    rect1 = text1.get_rect()
+    screen.blit(text, (100, 10), rect)
+    screen.blit(text1, (500, 10), rect1)
     pygame.display.flip()
     clock.tick(15)
     if win:
         load_level(screen, 0)
         sc = False
-        cur.execute('INSERT INTO results VALUES(?,?)', (None, time)).fetchall()
-        con.commit()
-        con = sqlite3.connect("calcul.db")
-        cur = con.cursor()
-        result = cur.execute('''SELECT hist FROM results''').fetchall()
-        cur.execute('''DELETE FROM results''').fetchall()
-        cur.execute('INSERT INTO results VALUES(?,?)', (None, time + result[0][0])).fetchall()
-        con.commit()
-        con = sqlite3.connect("calcul.db")
-        cur = con.cursor()
-        result1 = cur.execute('''SELECT hist FROM results''').fetchall()
-        font = pygame.font.Font(None, 36)
-        text = font.render(f"Вы набрали {point} очков", True, (255, 255, 255))
-        rect = text.get_rect()
-        font1 = pygame.font.Font(None, 36)
-        text1 = font1.render(f"Вы набрали {point} очков", True, (255, 255, 255))
-        rect1 = text1.get_rect()
-        screen.blit(text, (100, 100), rect)
-        screen.blit(text1, (150, 150), rect1)
-        pygame.display.flip()
     camera.update(player)
+cur.execute(f'UPDATE  results SET hist = {time}')
+con.commit()
 pygame.quit()
