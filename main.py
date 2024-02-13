@@ -23,9 +23,11 @@ coin_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 diam_group = pygame.sprite.Group()
 score = 0
+notpause = True
 hit = False
 win = False
 point = 1000
+
 
 def terminate():
     pygame.quit()
@@ -146,7 +148,7 @@ class Diam(pygame.sprite.Sprite):
             tile_size * pos_x, tile_size * pos_y + offset)
         self.an = 0
         self.l_upd = pygame.time.get_ticks()
-        self.fr_r = 15
+        self.fr_r = 5
 
     def update(self):
         now = pygame.time.get_ticks()
@@ -173,7 +175,7 @@ class Camera:
 
 
 def load_level(screen, level_num):
-    tile_type = {'.': 0, 'X': 1, 'T': 2, '$': 3, '@': 10, '!': 5, '%': 4}
+    tile_type = {'.': 0, 'X': 1, 'T': 2, '$': 3, '@': 10, '!': 5, '%': 4, '*': 15}
     player, x, y = None, None, None
     coin, x, y = None, None, None
     diam, x, y = None, None, None
@@ -246,44 +248,51 @@ running = True
 sc = True
 if not hit:
     player, coin, diam, level_size_x, level_size_y = load_level(screen, 1)
+endtext1 = 'Вы победили'
 
 while running:
     time += 1
+    if point == 0:
+        sc = False
+    if point == 0:
+        endtext1 = 'Вы проиграли'
+        notpause = False
     if sc:
         point -= 1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == PLAYER_LEFT:
-            player.left()
-        if event.type == PLAYER_RIGHT:
-            player.right()
-        if event.type == PLAYER_UP:
-            player.up()
-        if event.type == PLAYER_DOWN:
-            player.down()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
+        if notpause:
+            if event.type == PLAYER_LEFT:
                 player.left()
-                pygame.time.set_timer(PLAYER_LEFT, 50)
-            elif event.key == pygame.K_RIGHT:
+            if event.type == PLAYER_RIGHT:
                 player.right()
-                pygame.time.set_timer(PLAYER_RIGHT, 50)
-            elif event.key == pygame.K_UP:
+            if event.type == PLAYER_UP:
                 player.up()
-                pygame.time.set_timer(PLAYER_UP, 50)
-            elif event.key == pygame.K_DOWN:
+            if event.type == PLAYER_DOWN:
                 player.down()
-                pygame.time.set_timer(PLAYER_DOWN, 50)
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT:
-                pygame.time.set_timer(PLAYER_LEFT, 0)
-            elif event.key == pygame.K_RIGHT:
-                pygame.time.set_timer(PLAYER_RIGHT, 0)
-            elif event.key == pygame.K_UP:
-                pygame.time.set_timer(PLAYER_UP, 0)
-            elif event.key == pygame.K_DOWN:
-                pygame.time.set_timer(PLAYER_DOWN, 0)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    player.left()
+                    pygame.time.set_timer(PLAYER_LEFT, 50)
+                elif event.key == pygame.K_RIGHT:
+                    player.right()
+                    pygame.time.set_timer(PLAYER_RIGHT, 50)
+                elif event.key == pygame.K_UP:
+                    player.up()
+                    pygame.time.set_timer(PLAYER_UP, 50)
+                elif event.key == pygame.K_DOWN:
+                    player.down()
+                    pygame.time.set_timer(PLAYER_DOWN, 50)
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT:
+                    pygame.time.set_timer(PLAYER_LEFT, 0)
+                elif event.key == pygame.K_RIGHT:
+                    pygame.time.set_timer(PLAYER_RIGHT, 0)
+                elif event.key == pygame.K_UP:
+                    pygame.time.set_timer(PLAYER_UP, 0)
+                elif event.key == pygame.K_DOWN:
+                    pygame.time.set_timer(PLAYER_DOWN, 0)
     if hit:
         player, coin, diam, level_size_x, level_size_y = load_level(screen, 2)
         hit = False
@@ -296,14 +305,19 @@ while running:
     text = font.render(f"Вы набрали {point} очков", True, (255, 255, 255))
     rect = text.get_rect()
     font1 = pygame.font.Font(None, 36)
-    text1 = font1.render(f"Времени в игре {time // 15 } секунд", True, (255, 255, 255))
+    text1 = font1.render(f"Времени в игре {time // 5} секунд", True, (255, 255, 255))
+    endtext = font.render(f"{endtext1}", True, (255, 255, 255))
+    if not sc:
+        rect3 = endtext.get_rect()
+        screen.blit(endtext, (480, 300), rect3)
     rect1 = text1.get_rect()
     screen.blit(text, (100, 10), rect)
     screen.blit(text1, (500, 10), rect1)
     pygame.display.flip()
-    clock.tick(15)
+    clock.tick(5)
     if win:
         load_level(screen, 0)
+        notpause = False
         sc = False
     camera.update(player)
 cur.execute(f'UPDATE  results SET hist = {time}')
