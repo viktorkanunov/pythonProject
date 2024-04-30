@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>{{new.title}}</h1>
+    <div class="alert alert-info">
+        <p> {{new.content}}</p>
+        <p><b> Время написания: {{new.created_date}}</b></p>
+    </div>
+</div>
+{% endblock %}
